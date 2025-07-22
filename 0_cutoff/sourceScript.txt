@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Loop over ecutwfc values from 20 to 90 in steps of 10
+for E in {20..90..10}; do
+    echo "Running SCF for ecutwfc = $E Ry..."
+
+    # Create input filename and output filename
+    INPUT="AlF3.scf.in_${E}Ry"
+    OUTPUT="AlF3.scf.out3_${E}Ry"
+
+    # Run QE with MPI
+    mpirun -np 4 pw.x -in "$INPUT" > "$OUTPUT"
+done

@@ -1,0 +1,11 @@
+# List of Monkhorst-Pack K-point grid sizes to test
+for K in 1 2 4 6 8; do
+    echo "Running SCF for ${K}x${K}x${K} K-points..."
+
+    # Create input and output filenames
+    INPUT="AlF3.scf.in_${K}x${K}x${K}"
+    OUTPUT="AlF3.scf.out_kpt_${K}x${K}x${K}"
+
+    # Run Quantum ESPRESSO
+    mpirun -np 4 pw.x -in "$INPUT" > "$OUTPUT"
+done

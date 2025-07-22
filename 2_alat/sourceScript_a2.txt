@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# List of input files
+input_files=(
+    "AlF3.scf.in_a2_0.995"
+    "AlF3.scf.in_a2_0.99"
+    "AlF3.scf.in_a2_1.005"
+    "AlF3.scf.in_a2_1.01"
+)
+
+# Loop over each file
+for input_file in "${input_files[@]}"; do
+    echo "Running SCF for input file: $input_file"
+
+    # Derive output filename
+    output_file="${input_file/in/out}"
+
+    # Run QE with MPI
+    time mpirun -np 4 pw.x -in "$input_file" > "$output_file"
+done

@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+
+source ../../ENVIRONMENT_VARIABLES
+source ./functions
+echo "BIN_DIR:" $BIN_DIR
+echo "PSEUDO_DIR:" $PSEUDO_DIR
+echo "TMP_DIR:" $TMP_DIR
+echo "Parallel command:" $RUN_COMMAND
+echo "Started at: " `date`
+
+
+CELL_DIM=10.2075
+CUTOFF=40
+nbnd=20
+PREFIX=Si
+
+##################################################################################################
+#Conto scf
+print_scf_in;
+
+IN="Si.scf.in"
+OUT="Si.scf.out"
+COMMAND="  $RUN_COMMAND $BIN_DIR/pw.x < $IN > $OUT"
+echo "$COMMAND"
+$COMMAND < $IN > $OUT
+
+#mv -t tmp $OUT
+mv $OUT tmp
+
+rm -r tmp/Si.save/K*
+rm -r bu 2>/dev/null
+
+##################################################################################################
+#Convergenza sui punti k
+for k_pt in 5 10 15 20; do
+	cp -r tmp bu
+	DIRNAME="kpt_$k_pt"
+
+	#Conti nscf
+	print_nscf_in $k_pt;
+
+	IN="Si.kpt_$k_pt.nscf.in"
+	OUT="Si.kpt_$k_pt.nscf.out"
+	COMMAND="$RUN_COMMAND $BIN_DIR/pw.x < $IN > $OUT"
+	echo "  $COMMAND"
+	$COMMAND < $IN > $OUT
+
+	mkdir -p $DIRNAME
+#mv -t $DIRNAME $OUT tmp
+	mv $OUT $DIRNAME 
+	mv tmp $DIRNAME
+	cd $DIRNAME
+
+	#Conti DOS
+	print_dos_in;
+
+	IN="Si.dos.in"
+	OUT="Si.dos.out"
+	COMMAND="  $BIN_DIR/dos.x < $IN > $OUT"
+	echo "$COMMAND"
+	$COMMAND < $IN > $OUT
+
+	#Conti proprieta ottiche (Parte immaginaria della funzione dielettrica)
+	print_pw2gw_in
+
+	IN="Si.pw2gw.in"
+	OUT="Si.pw2gw.out"
+	COMMAND="  $BIN_DIR/pw2gw.x < $IN > $OUT"
+	echo "$COMMAND"
+	$COMMAND < $IN > $OUT
+	
+	cd ..
+	rm -r tmp 2>/dev/null
+	mv bu tmp
+	echo -e "\n"
+done
+
+
+##################################################################################################
+#Convergenza sul numero di bande
+for nbnd in 5 10 15; do
+	cp -r tmp bu
+	DIRNAME="bnd_$nbnd"
+
+	#Conti nscf
+	print_nscf_in2 $nbnd;
+
+	IN="Si.bnd_$nbnd.nscf.in"
+	OUT="Si.bnd_$nbnd.nscf.out"
+	COMMAND="$RUN_COMMAND $BIN_DIR/pw.x < $IN > $OUT"
+	echo "  $COMMAND"
+	$COMMAND < $IN > $OUT
+
+	mkdir -p $DIRNAME
+#mv -t $DIRNAME $OUT tmp
+	mv $OUT $DIRNAME 
+	mv tmp $DIRNAME
+	cd $DIRNAME
+
+	#Conti proprieta ottiche (Parte immaginaria della funzione dielettrica)
+	print_pw2gw_in
+
+	IN="Si.pw2gw.in"
+	OUT="Si.pw2gw.out"
+	COMMAND="  $BIN_DIR/pw2gw.x < $IN > $OUT"
+	echo "$COMMAND"
+	$COMMAND < $IN > $OUT
+	
+	cd ..
+	rm -r tmp 2>/dev/null
+	mv bu tmp
+	echo -e "\n"
+done
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exit
+
+
+
+
+
